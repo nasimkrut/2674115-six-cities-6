@@ -2,12 +2,10 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 import { City } from '../../types/city';
 import { CityState } from '../../types/state';
+import { DEFAULT_CITY } from '../../const';
 
 const initialState: CityState = {
-  city: {
-    name: 'Paris',
-    location: { latitude: 48.85661, longitude: 2.351499, zoom: 13 },
-  },
+  city: DEFAULT_CITY,
 };
 
 export const citySlice = createSlice({

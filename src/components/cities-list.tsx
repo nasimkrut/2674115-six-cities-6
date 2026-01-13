@@ -1,5 +1,5 @@
 import React from 'react';
-import cn from 'classnames';
+import classNames from 'classnames';
 
 import { type City } from '../types/city';
 
@@ -17,7 +17,7 @@ function CitiesList({ cities, currentCity, onCityChange }: CitiesListProps): JSX
           {cities.map((city) => (
             <li key={city.name} className="locations__item">
               <a
-                className={cn('locations__item-link tabs__item',
+                className={classNames('locations__item-link tabs__item',
                   {
                     'tabs__item--active': city.name === currentCity.name
                   }

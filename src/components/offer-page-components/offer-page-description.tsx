@@ -1,5 +1,9 @@
-import cn from 'classnames';
+import React from 'react';
+
 import { type Offer } from '../../types/offer';
+import OfferBookmarkButton from './offer-page-bookmark-button';
+import OfferFeatures from './offer-page-features';
+import { MaxOfferCounter } from '../../const';
 
 type OfferDescriptionProps = {
   offer: Offer;
@@ -17,37 +21,24 @@ function OfferDescription({ offer }: OfferDescriptionProps): JSX.Element {
         <h1 className='offer__name'>
           {offer.title}
         </h1>
-        <button
-          className={cn(
-            'offer__bookmark-button',
-            { 'offer__bookmark-button--active': offer.isFavorite },
-            'button')}
-          type='button'
-        >
-          <svg className='offer__bookmark-icon' width='31' height='33'>
-            <use xlinkHref='#icon-bookmark'></use>
-          </svg>
-          <span className='visually-hidden'>{offer.isFavorite ? 'In bookmarks' : 'To bookmarks'}</span>
-        </button>
+
+        <OfferBookmarkButton offerId={offer.id} isFavorite={offer.isFavorite} />
+
       </div>
       <div className='offer__rating rating'>
         <div className='offer__stars rating__stars'>
-          <span style={{ width: `${offer.rating * 20}%` }}></span>
+          <span style={{ width: `${Math.min(MaxOfferCounter.Rating, Math.round(offer.rating)) * 20}%` }}></span>
           <span className='visually-hidden'>Rating</span>
         </div>
         <span className='offer__rating-value rating__value'>{offer.rating}</span>
       </div>
-      <ul className='offer__features'>
-        <li className='offer__feature offer__feature--entire'>
-          {offer.housingType}
-        </li>
-        <li className='offer__feature offer__feature--bedrooms'>
-          {offer.bedrooms} {offer.bedrooms !== 1 ? 'Bedrooms' : 'Bedroom'}
-        </li>
-        <li className='offer__feature offer__feature--adults'>
-          Max {offer.maxAdults} adults
-        </li>
-      </ul>
+
+      <OfferFeatures
+        type={offer.type.charAt(0).toUpperCase() + offer.type.slice(1)}
+        bedrooms={offer.bedrooms}
+        maxAdults={offer.maxAdults}
+      />
+
       <div className='offer__price'>
         <b className='offer__price-value'>&euro;{offer.price}</b>
         <span className='offer__price-text'>&nbsp;night</span>
@@ -87,4 +78,7 @@ function OfferDescription({ offer }: OfferDescriptionProps): JSX.Element {
   );
 }
 
-export default OfferDescription;
+const MemoizedOfferDescription = React.memo(OfferDescription);
+MemoizedOfferDescription.displayName = 'OfferDescription';
+
+export default MemoizedOfferDescription;

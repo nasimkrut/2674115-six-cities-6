@@ -1,11 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { MouseEvent, useCallback } from 'react';
-import cn from 'classnames';
+import classNames from 'classnames';
 
-import { type Offer } from '../types/offer';
-import OfferCard from './offer-card-base';
-import OfferCardCities from './offer-card-cities';
-import OfferCardNearPlaces from './offer-card-near-places';
+import { type Offer } from '../../types/offer';
+import { OfferCard, OfferCardCities, OfferCardNearPlaces } from '../offer-card';
 
 type OfferListProps = {
   offers: Offer[];
@@ -48,9 +46,16 @@ function OfferList({ offers, onListItemHover, className, tabsContent, }: OfferLi
     }
   }, [onListItemHover]);
 
+  const renderedOffers = useMemo(
+    () => offers.map((offer) => (
+      <div key={offer.id}>{getComponentByType(className, offer, handleListItemHover)}</div>
+    )),
+    [offers, className, handleListItemHover]
+  );
+
   return (
     <div
-      className={cn(
+      className={classNames(
         'places__list',
         {
           'near-places__list': className === 'near-places',
@@ -59,11 +64,7 @@ function OfferList({ offers, onListItemHover, className, tabsContent, }: OfferLi
         }
       )}
     >
-      {offers.map((offer) => (
-        <div key={offer.id}>
-          {getComponentByType(className, offer, handleListItemHover)}
-        </div>
-      ))}
+      {renderedOffers}
     </div>
   );
 }

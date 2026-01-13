@@ -1,9 +1,9 @@
-import { NameSpace } from '../../const';
 import { useAppSelector } from '../../hooks/use-app-selector';
+import { getUserError } from '../../store/user/user.selector';
 import './error-message.css';
 
 function ErrorMessage(): JSX.Element | null {
-  const error = useAppSelector((state) => state[NameSpace.User].error);
+  const error = useAppSelector(getUserError);
   return (error)
     ? <div className='error-message'>{error}</div>
     : null;

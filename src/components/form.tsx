@@ -1,107 +1,119 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { useParams } from 'react-router-dom';
 
-function Form() {
-  const [stars, setStars] = useState(0);
-  const [, setReview] = useState('');
+import { useAppDispatch } from '../hooks/use-app-dispatch';
+import { postReviewAction } from '../store/api-actions';
+
+function ReviewForm() {
+  const dispatch = useAppDispatch();
+  const { id: offerId } = useParams();
+
+  const [selectedRating, setSelectedRating] = useState(0);
+  const [reviewText, setReviewText] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const isFormReady = selectedRating > 0 && reviewText.length >= 50 && reviewText.length <= 300;
+
+  const ratingOptions = [
+    { score: 5, label: 'excellent' },
+    { score: 4, label: 'good' },
+    { score: 3, label: 'average' },
+    { score: 2, label: 'poor' },
+    { score: 1, label: 'unacceptable' },
+  ];
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!offerId) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await dispatch(
+        postReviewAction({
+          offerId,
+          data: { rating: selectedRating, comment: reviewText },
+        })
+      ).unwrap();
+
+      setSelectedRating(0);
+      setReviewText('');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
-    <form className="reviews__form form" action="#" method="post">
-      <label className="reviews__label form__label" htmlFor="review">Your review</label>
+    <form
+      className="reviews__form form"
+      method="post"
+      onSubmit={(event) => {
+        void handleSubmit(event);
+      }}
+    >
+      <label className="reviews__label form__label" htmlFor="review-content">
+        Share your experience
+      </label>
+
       <div className="reviews__rating-form form__rating">
-        <input
-          className="form__rating-input visually-hidden"
-          name="rating"
-          value="5"
-          id="5-stars"
-          type="radio"
-          checked={stars === 5}
-          onChange={() => setStars(5)}
-        />
-        <label htmlFor="5-stars" className="reviews__rating-label form__rating-label" title="perfect">
-          <svg className="form__star-image" width="37" height="33">
-            <use xlinkHref="#icon-star"></use>
-          </svg>
-        </label>
-
-
-        <input
-          className="form__rating-input visually-hidden"
-          name="rating"
-          value="4"
-          id="4-stars"
-          type="radio"
-          checked={stars === 4}
-          onChange={() => setStars(4)}
-        />
-        <label htmlFor="4-stars" className="reviews__rating-label form__rating-label" title="good">
-          <svg className="form__star-image" width="37" height="33">
-            <use xlinkHref="#icon-star"></use>
-          </svg>
-        </label>
-
-        <input
-          className="form__rating-input visually-hidden"
-          name="rating"
-          value="3"
-          id="3-stars"
-          type="radio"
-          checked={stars === 3}
-          onChange={() => setStars(3)}
-        />
-        <label htmlFor="3-stars" className="reviews__rating-label form__rating-label" title="not bad">
-          <svg className="form__star-image" width="37" height="33">
-            <use xlinkHref="#icon-star"></use>
-          </svg>
-        </label>
-
-        <input
-          className="form__rating-input visually-hidden"
-          name="rating"
-          value="2"
-          id="2-stars"
-          type="radio"
-          checked={stars === 2}
-          onChange={() => setStars(2)}
-        />
-        <label htmlFor="2-stars" className="reviews__rating-label form__rating-label" title="badly">
-          <svg className="form__star-image" width="37" height="33">
-            <use xlinkHref="#icon-star"></use>
-          </svg>
-        </label>
-
-        <input
-          className="form__rating-input visually-hidden"
-          name="rating"
-          value="1"
-          id="1-star"
-          type="radio"
-          checked={stars === 1}
-          onChange={() => setStars(1)}
-        />
-        <label htmlFor="1-star" className="reviews__rating-label form__rating-label" title="terribly">
-          <svg className="form__star-image" width="37" height="33">
-            <use xlinkHref="#icon-star"></use>
-          </svg>
-        </label>
-
+        {ratingOptions.map(({ score, label }) => (
+          <React.Fragment key={score}>
+            <input
+              className="form__rating-input visually-hidden"
+              name="review-score"
+              value={score}
+              id={`rating-${score}`}
+              type="radio"
+              checked={selectedRating === score}
+              disabled={isSubmitting}
+              onChange={() => setSelectedRating(score)}
+            />
+            <label
+              htmlFor={`rating-${score}`}
+              className="reviews__rating-label form__rating-label"
+              title={label}
+            >
+              <svg className="form__star-image" width="37" height="33">
+                <use xlinkHref="#icon-star"></use>
+              </svg>
+            </label>
+          </React.Fragment>
+        ))}
       </div>
+
       <textarea
         className="reviews__textarea form__textarea"
-        id="review"
-        name="review"
-        placeholder="Tell how was your stay, what you like and what can be improved"
-        onChange={(evt) => {
-          setReview(evt.target.value);
+        id="review-content"
+        name="review-content"
+        placeholder="Describe your visit - what stood out and what could be enhanced"
+        value={reviewText}
+        maxLength={300}
+        disabled={isSubmitting}
+        onChange={(event) => {
+          setReviewText(event.target.value);
         }}
       />
+
       <div className="reviews__button-wrapper">
         <p className="reviews__help">
-          To submit review please make sure to set <span className="reviews__star">rating</span> and describe your stay with at least <b className="reviews__text-amount">50 characters</b>.
+          Please select a <span className="reviews__star">rating</span> and
+          provide feedback of at least <b className="reviews__text-amount">50 characters</b>
+          to publish your review.
         </p>
-        <button className="reviews__submit form__submit button" type="submit" disabled>Submit</button>
+        <button
+          className="reviews__submit form__submit button"
+          type="submit"
+          disabled={!isFormReady || isSubmitting}
+        >
+          {isSubmitting ? 'Publishing...' : 'Publish Review'}
+        </button>
       </div>
     </form>
   );
 }
 
-export default Form;
+const MemoizedReviewForm = React.memo(ReviewForm);
+MemoizedReviewForm.displayName = 'ReviewForm';
+
+export default MemoizedReviewForm;

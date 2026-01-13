@@ -24,10 +24,12 @@ export type CityState = {
 export type OfferState = {
   offer: Offer | null;
   reviews: ReviewType[];
-  nearby: Offer[];
+  nearbyOffers: Offer[];
 };
 
 export type OffersState = {
   offers: Offer[];
   isOffersDataLoading: boolean;
+  favorites: Offer[];
+  isFavoritesOffersDataLoading: boolean;
 };

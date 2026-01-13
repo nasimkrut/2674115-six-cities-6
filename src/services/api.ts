@@ -20,7 +20,7 @@ const StatusCodeMapping: Record<number, boolean> = {
   [StatusCodes.NOT_FOUND]: true
 };
 
-const shouldDisplayError = (response: AxiosResponse) => !!StatusCodeMapping[response.status];
+const shouldDisplayError = (response: AxiosResponse) => StatusCodeMapping[response.status];
 
 const BASE_URL = 'https://14.design.htmlacademy.pro/six-cities';
 const REQUEST_TIMEOUT = 5000;
@@ -34,7 +34,7 @@ export const createAPI = (): AxiosInstance => {
     (config: InternalAxiosRequestConfig) => {
       const token = getToken();
 
-      if (token && config.headers) {
+      if (token !== null && token !== '' && config.headers) {
         config.headers['x-token'] = token;
       }
 
@@ -45,21 +45,23 @@ export const createAPI = (): AxiosInstance => {
   api.interceptors.response.use(
     (response) => response,
     (error: AxiosError<DetailMessageType>) => {
-
       if (error.response?.status === StatusCodes.UNAUTHORIZED) {
         dropToken();
       }
 
-      if (error.response && shouldDisplayError(error.response)) {
-        const data = error.response.data;
+      let message = 'Server is not available. Please try again later.';
 
-        const detailMessage =
-          data?.details?.length > 0
-            ? data.details[0].messages?.[0]
-            : data?.message ?? 'Unknown error';
-
-        processErrorHandle(detailMessage);
+      if (error.response) {
+        if (shouldDisplayError(error.response)) {
+          const data = error.response.data;
+          message =
+            data?.details?.length > 0
+              ? data.details[0].messages?.[0]
+              : data?.message ?? message;
+        }
       }
+
+      processErrorHandle(message);
 
       throw error;
     }

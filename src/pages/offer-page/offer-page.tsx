@@ -1,18 +1,23 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useParams } from 'react-router-dom';
 
 import Header from '../../components/header/header';
 import Form from '../../components/form';
 import Map from '../../components/map';
-import OfferListNearPlaces from '../../components/offer-list-near-places';
+import { OfferListNearPlaces } from '../../components/offer-list';
 import ReviewsList from '../../components/reviews-list';
-import OfferDescription from './offer-description';
+import { OfferImages, OfferDescription } from '../../components/offer-page-components';
 
 import { useAppDispatch } from '../../hooks/use-app-dispatch';
 import { useAppSelector } from '../../hooks/use-app-selector';
 import { fetchNearbyAction, fetchOfferAction, fetchReviewsAction } from '../../store/api-actions';
-import { getCurrentOffer, getOfferReviews, selectMapOffers, selectTopNearbyOffers } from '../../store/offer/offer.selector';
+import { getCurrentOffer, selectMapOffers, selectReviews, selectTopNearbyOffers } from '../../store/offer/offer.selector';
+import { AuthorizationStatus, DEFAULT_CITY } from '../../const';
+import NotFoundPage from '../not-found-page/not-found-page';
+import { getIsOffersDataLoading } from '../../store/offers/offers.selector';
+import LoadingPage from '../loading-page/loading-page';
+import { getAuthorizationStatus } from '../../store/user/user.selector';
 
 function OfferPage(): JSX.Element {
 
@@ -28,31 +33,23 @@ function OfferPage(): JSX.Element {
     }
   }, [id, dispatch]);
 
+  const authorizationStatus = useAppSelector(getAuthorizationStatus);
   const currentOffer = useAppSelector(getCurrentOffer);
-
-  const offerReviews = useAppSelector(getOfferReviews);
+  const offerReviews = useAppSelector(selectReviews);
   const nearbyOffers = useAppSelector(selectTopNearbyOffers);
+  const isOffersDataLoading = useAppSelector(getIsOffersDataLoading);
 
-  const city = currentOffer
-    ? currentOffer.city
-    : {
-      name: 'Paris',
-      location: {
-        latitude: 48.85661,
-        longitude: 2.351499,
-        zoom: 13
-      },
-    };
-
+  const city = currentOffer?.city ?? DEFAULT_CITY;
   const mapOffers = useAppSelector(selectMapOffers);
 
-  const memoizedNearbyOffers = useMemo(
-    () => nearbyOffers,
-    [nearbyOffers]
-  );
+  const images = currentOffer?.images ?? [];
 
-  if (!currentOffer) {
-    return <div>Offer not found</div>;
+  if (isOffersDataLoading) {
+    return <LoadingPage />;
+  }
+
+  if (!currentOffer && !isOffersDataLoading) {
+    return <NotFoundPage />;
   }
 
   return (
@@ -65,45 +62,24 @@ function OfferPage(): JSX.Element {
 
       <main className='page__main page__main--offer'>
         <section className='offer'>
-          <div className='offer__gallery-container container'>
-            <div className='offer__gallery'>
-              <div className='offer__image-wrapper'>
-                <img className='offer__image' src='img/room.jpg' alt='Photo studio' />
-              </div>
-              <div className='offer__image-wrapper'>
-                <img className='offer__image' src='img/apartment-01.jpg' alt='Photo studio' />
-              </div>
-              <div className='offer__image-wrapper'>
-                <img className='offer__image' src='img/apartment-02.jpg' alt='Photo studio' />
-              </div>
-              <div className='offer__image-wrapper'>
-                <img className='offer__image' src='img/apartment-03.jpg' alt='Photo studio' />
-              </div>
-              <div className='offer__image-wrapper'>
-                <img className='offer__image' src='img/studio-01.jpg' alt='Photo studio' />
-              </div>
-              <div className='offer__image-wrapper'>
-                <img className='offer__image' src='img/apartment-01.jpg' alt='Photo studio' />
-              </div>
-            </div>
-          </div>
+          <OfferImages images={images} />
           <div className='offer__container container'>
             <div className='offer__wrapper'>
               {currentOffer && <OfferDescription offer={currentOffer} />}
               <section className='offer__reviews reviews'>
                 <ReviewsList reviews={offerReviews} />
-                <Form />
+                {authorizationStatus === AuthorizationStatus.Auth && <Form />}
               </section>
             </div>
           </div>
           <section className='offer__map map' style={{ background: 'none' }}>
-            <Map city={city} offers={mapOffers} selectedPoint={currentOffer} />
+            <Map city={city} offers={mapOffers} selectedPoint={currentOffer ?? undefined} />
           </section>
         </section>
         <div className='container'>
           <section className='near-places places'>
             <h2 className='near-places__title'>Other places in the neighbourhood</h2>
-            <OfferListNearPlaces offers={memoizedNearbyOffers} />
+            <OfferListNearPlaces offers={nearbyOffers} />
           </section>
         </div>
       </main>

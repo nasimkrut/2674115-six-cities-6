@@ -4,6 +4,6 @@ export type ReviewType = {
   id: string;
   date: string;
   user: UserData;
-  rating: number;
   comment: string;
+  rating: number;
 };

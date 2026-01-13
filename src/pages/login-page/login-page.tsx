@@ -3,11 +3,12 @@ import { FormEvent, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 
-import { AppRoute, AuthorizationStatus, NameSpace } from '../../const';
+import { AppRoute, AuthorizationStatus } from '../../const';
 import Header from '../../components/header/header';
 import { useAppDispatch } from '../../hooks/use-app-dispatch';
 import { useAppSelector } from '../../hooks/use-app-selector';
-import { loginAction } from '../../store/api-actions';
+import { fetchOffersAction, loginAction } from '../../store/api-actions';
+import { getAuthorizationStatus } from '../../store/user/user.selector';
 
 const LoginLocation = React.memo(() => (
   <section className="locations locations--login locations--current">
@@ -27,15 +28,15 @@ function LoginPage(): JSX.Element {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const authorizationStatus = useAppSelector((s) => s[NameSpace.User].authorizationStatus);
+  const authorizationStatus = useAppSelector(getAuthorizationStatus);
   if (authorizationStatus === AuthorizationStatus.Auth) {
     return <Navigate to={AppRoute.Root} />;
   }
 
-  const handleSubmit = async (evt: FormEvent<HTMLFormElement>) => {
+  const handleFormSubmit = async (evt: FormEvent<HTMLFormElement>) => {
     evt.preventDefault();
-    const resultAction = await dispatch(loginAction({login: email, password}));
-
+    const resultAction = await dispatch(loginAction({ login: email, password }));
+    dispatch(fetchOffersAction());
     if (loginAction.fulfilled.match(resultAction)) {
       navigate(AppRoute.Root);
     }
@@ -47,13 +48,13 @@ function LoginPage(): JSX.Element {
         <title>{'6 cities — login'}</title>
       </Helmet>
 
-      <Header isLoginPage/>
+      <Header isLoginPage />
 
       <main className="page__main page__main--login">
         <div className="page__login-container container">
           <section className="login">
             <h1 className="login__title">Sign in</h1>
-            <form className="login__form form" method="post" onSubmit={(e) => void handleSubmit(e)}>
+            <form className="login__form form" method="post" onSubmit={(e) => void handleFormSubmit(e)}>
               <div className="login__input-wrapper form__input-wrapper">
                 <label className="visually-hidden">E-mail</label>
                 <input

@@ -3,7 +3,7 @@ import { Location } from './location';
 export type Offer = {
   id: string;
   title: string;
-  housingType: string;
+  type: string;
   price: number;
   city: {
     name: string;

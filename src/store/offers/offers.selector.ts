@@ -8,10 +8,8 @@ import { City } from '../../types/city';
 export const getOffers = (state: State) => state[NameSpace.Offers].offers;
 export const getIsOffersDataLoading = (state: State) => state[NameSpace.Offers].isOffersDataLoading;
 
-export const selectFavoriteOffers = createSelector(
-  [getOffers],
-  (offers) => offers.filter((offer) => offer.isFavorite)
-);
+export const getFavoritesOffers = (state: State) => state[NameSpace.Offers].favorites;
+export const getIsFavoritesOffersDataLoading = (state: State) => state[NameSpace.Offers].isFavoritesOffersDataLoading;
 
 export const selectOffersByCity = createSelector(
   [getOffers, getCity],

@@ -1,13 +1,18 @@
 import { createSlice } from '@reduxjs/toolkit';
 
-import { fetchOfferAction, fetchReviewsAction, fetchNearbyAction } from '../api-actions';
+import {
+  fetchOfferAction,
+  fetchReviewsAction,
+  fetchNearbyAction,
+  addFavorite
+} from '../api-actions';
 import { OfferState } from '../../types/state';
 
 
 const initialState: OfferState = {
   offer: null,
   reviews: [],
-  nearby: [],
+  nearbyOffers: [],
 };
 
 export const offerSlice = createSlice({
@@ -23,7 +28,18 @@ export const offerSlice = createSlice({
         state.reviews = action.payload;
       })
       .addCase(fetchNearbyAction.fulfilled, (state, action) => {
-        state.nearby = action.payload;
+        state.nearbyOffers = action.payload;
+      })
+      .addCase(addFavorite.fulfilled, (state, action) => {
+        const updatedOffer = action.payload;
+
+        if (state.offer && state.offer.id === updatedOffer.id) {
+          state.offer = updatedOffer;
+        }
+
+        state.nearbyOffers = state.nearbyOffers.map((offer) =>
+          offer.id === updatedOffer.id ? updatedOffer : offer
+        );
       });
   },
 });
